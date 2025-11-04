@@ -1,0 +1,17 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redigera inlägg</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Redigera inlägg</h1>
+    <form method="post" action="/edit/{post_id}">
+        <input type="text" name="title" value="{title}"><br><br>
+        <textarea name="content">{content}</textarea><br><br>
+        <button type="submit">Uppdatera</button>
+    </form>
+    <a href="/">⬅ Tillbaka</a>
+</body>
+</html>
