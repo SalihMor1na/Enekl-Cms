@@ -2,6 +2,7 @@ from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
+from fastapi.templating import Jinja2Templates
 import sqlite3
 import hashlib
 
@@ -10,6 +11,7 @@ app = FastAPI()
 
 app.add_middleware(SessionMiddleware, secret_key="supersecretkey123")
 app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
 
 conn = sqlite3.connect('blog.db')
 cur = conn.cursor()
@@ -57,23 +59,14 @@ def home(request: Request):
     posts = cur.fetchall()
     conn.close()
 
-    template = load_template("index.html") 
-    current_user = request.session.get("user")
-
-    template = remove_log_reg_btn(template, current_user)
-
-    posts_html = ""
-    for pid, title, content in posts:
-        posts_html += f"""
-        <div class='post'>
-            <h2>{title}</h2>
-            <p>{content}</p>
-        </div>"""
     
     current_user = request.session.get("user")
- 
 
-    return template.replace("{{posts}}", posts_html)
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "posts": posts,
+        "current_user": current_user
+    })
 
 
 @app.get("/admin", response_class=HTMLResponse)
