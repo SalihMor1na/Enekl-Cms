@@ -1,16 +1,30 @@
 <!DOCTYPE html>
-<html>
+<html lang="sv">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <H1>Login</H1>
-    <form method="post" action="/login">
-        <input type="text" name="username" placeholder="Username"><br><br>
-        <input type="password" name="password" placeholder="Password"><br><br>
-        <button type="submit">login</button>
-    </form>
+  <nav class="navbar">
+    <div class="logo"><a href="/">✨ MinBlogg</a></div>
+  </nav>
+
+  <main class="form-wrapper">
+    <div class="form-card">
+      <h1>Logga in</h1>
+      <form method="post" action="/login">
+        <input type="text" name="username" placeholder="Användarnamn" required>
+        <input type="password" name="password" placeholder="Lösenord" required>
+        <button type="submit" class="btn-primary">Logga in</button>
+      </form>
+      <p>Har du inget konto? <a href="/register">Registrera dig här</a></p>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>© 2025 MinBlogg</p>
+  </footer>
 </body>
 </html>

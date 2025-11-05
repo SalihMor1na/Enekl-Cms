@@ -6,30 +6,46 @@
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-  <h1>Adminpanel</h1>
-  <div class="top-bar">
-    {% if current_user %}
-        <span class="user-info">Inloggad som: <b>{{ current_user }}</b></span>
-        <a class="btn" href="/logout">Logout</a>
-    {% endif %}
-    <a class="btn" href="/">Till startsidan</a>
-    <a class="btn" href="/new">➕ Nytt inlägg</a>
-</div>
-
-<h1>Blogginlägg</h1>
-<div class="posts">
-  {% for pid, title, content, image in posts %}
-    <div class="post">
-        <h2>{{ title }}</h2>
-        {% if image %}
-            <img src="{{ image }}" alt="Bild för {{ title }}" class="post-image">
+  <nav class="navbar">
+    <div class="logo"><a href="/">✨ MinBlogg</a></div>
+    <div class="nav-links">
+      {% if current_user %}
+        <span class="user-info">Inloggad som <b>{{ current_user }}</b></span>
+        {% if current_user == "admin1" %}
+          <a href="/new">Lägg Till Inlägg</a>
+          <a href="/admin">AdminPanel</a>
         {% endif %}
-        <p>{{ content }}</p>
-        <a href="/edit/{{ pid }}">✏️ Redigera</a>
-        <a href="/delete/{{ pid }}">🗑️ Ta bort</a>
+        <a href="/logout">Logout</a>
+      {% else %}
+        <a href="/register">Register</a>
+        <a href="/login">Login</a>
+      {% endif %}
     </div>
-  {% endfor %}
-</div>
+  </nav>
+
+  <main class="content">
+    <h1 class="page-title">Senaste inlägg</h1>
+    <div class="posts-grid">
+      {% for pid, title, content, image in posts %}
+        <div class="post-card">
+          {% if image %}
+            <img src="{{ image }}" alt="{{ title }}" class="post-image">
+          {% endif %}
+          <h2>{{ title }}</h2>
+          <p>{{ content }}</p>
+          
+          <div class="post-actions">
+            <a href="/edit/{{ pid }}" class="btn-action edit">✏️ Redigera</a>
+            <a href="/delete/{{ pid }}" class="btn-action delete">🗑️ Ta bort</a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>© Skapad av Salih Morina</p>
+  </footer>
  
 </body>
 </html>

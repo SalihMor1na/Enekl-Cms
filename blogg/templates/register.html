@@ -6,11 +6,24 @@
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <H1>Resgister</H1>
-    <form method="post" action="/register">
-        <input type="text" name="username" placeholder="Username"><br><br>
-        <input type="password" name="password" placeholder="Password"><br><br>
-        <button type="submit">Register</button>
-    </form>
+
+    <nav class="navbar">
+      <div class="logo"><a href="/">✨ MinBlogg</a></div>
+    </nav>
+  
+    <main class="form-wrapper">
+      <div class="form-card">
+        <h1>Registrera</h1>
+        <form method="post" action="/register">
+          <input type="text" name="username" placeholder="Användarnamn" required>
+          <input type="password" name="password" placeholder="Lösenord" required>
+          <button type="submit" class="btn-primary">Logga in</button>
+        </form>
+      </div>
+    </main>
+  
+    <footer class="footer">
+      <p>© 2025 MinBlogg</p>
+    </footer>
 </body>
 </html>

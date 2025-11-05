@@ -6,6 +6,7 @@ from fastapi.templating import Jinja2Templates
 import sqlite3
 import hashlib
 import os
+import shutil
 
 app = FastAPI()
 
@@ -110,13 +111,10 @@ def new_post_form():
 @app.post("/new")
 def save_post(title: str = Form(...), content: str = Form(...), image: UploadFile = File(None)):
     image_path = None
-    if image:
-        upload_dir = "static/uploads"
-        os.makedirs(upload_dir, exist_ok=True)
-        file_path = os.path.join(upload_dir, image.filename)
-        with open(file_path, "wb") as buffer:
-            buffer.write(image.file.read())
-        image_path = f"/static/uploads/{image.filename}"
+    if image and image.filename != "":
+        image_path = f"static/uploads/{image.filename}"
+        with open(image_path, "wb") as buffer:
+            shutil.copyfileobj(image.file, buffer)
 
     conn = sqlite3.connect("blog.db")
     cur = conn.cursor()
@@ -154,24 +152,26 @@ def edit_post_form(request: Request, post_id: int):
         "image": image
     })
     
-    return HTMLResponse(html)
+   
 @app.post("/edit/{post_id}")
 def update_post(post_id: int, title: str = Form(...), content: str = Form(...), image: UploadFile = File(None)):
     conn = sqlite3.connect("blog.db")
     cur = conn.cursor()
     cur.execute("SELECT image FROM posts WHERE id = ?", (post_id,))
     old_image = cur.fetchone()[0]
-    image_path = old_image
+    filename = os.path.basename(image.filename)
+    image_path = f"static/uploads/{filename}".lstrip("/")
 
-    if image:
-        upload_dir = "static/uploads"
-        os.makedirs(upload_dir, exist_ok=True)
-        file_path = os.path.join(upload_dir, image.filename)
-        with open(file_path, "wb") as buffer:
-            buffer.write(image.file.read())
-        image_path = f"/static/uploads/{image.filename}"
+    if image and image.filename != "":
+        image_path = f"static/uploads/{image.filename}"
+        with open(image_path, "wb") as buffer:
+            shutil.copyfileobj(image.file, buffer)
+    
+    cur.execute(
+        "UPDATE posts SET title = ?, content = ?, image = ? WHERE id = ?",
+        (title, content, image_path, post_id)
+    )
 
-    cur.execute("UPDATE posts SET title = ?, content = ?, image = ? WHERE id = ?", (title, content, image_path, post_id))
     conn.commit()
     conn.close()
 
@@ -187,24 +187,23 @@ def register(username: str = Form(...), password: str = Form(...)):
     conn = sqlite3.connect("blog.db")
     cur = conn.cursor()
 
-    # 🔹 Kolla om användarnamnet redan finns
     cur.execute("SELECT * FROM users WHERE username = ?", (username,))
     existing_user = cur.fetchone()
 
     if existing_user:
         conn.close()
-        # 🔹 Visa ett tydligt felmeddelande
+       
         return HTMLResponse("""
             <h2>❌ Användarnamnet finns redan!</h2>
             <p>Välj ett annat användarnamn.</p>
             <a href='/register'>⬅ Försök igen</a>
         """)
 
-    # 🔹 Skapa nytt konto
     cur.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hash_password(password)))
     conn.commit()
     conn.close()
-    return RedirectResponse("/", status_code=303)
+    return RedirectResponse("/login", status_code=303)
+
 @app.get("/login", response_class=HTMLResponse)
 def login_form():
     return load_template("login.html")
