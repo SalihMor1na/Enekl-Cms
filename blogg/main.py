@@ -1,11 +1,11 @@
-from fastapi import FastAPI, Form, Request
+from fastapi import FastAPI, Form, Request, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.templating import Jinja2Templates
 import sqlite3
 import hashlib
-
+import os
 
 app = FastAPI()
 
@@ -28,6 +28,12 @@ cur.executescript('''
         password TEXT
     );
 ''')
+
+try:
+    cur.execute("ALTER TABLE posts ADD COLUMN image TEXT;")
+except sqlite3.OperationalError:
+    pass
+
 conn.commit()
 conn.close()
 
@@ -55,7 +61,7 @@ def remove_log_reg_btn(template: str, current_user: str | None):
 def home(request: Request):
     conn = sqlite3.connect("blog.db")
     cur = conn.cursor()
-    cur.execute("SELECT id, title, content FROM posts ORDER BY id DESC")
+    cur.execute("SELECT id, title, content, image FROM posts ORDER BY id DESC")
     posts = cur.fetchall()
     conn.close()
 
@@ -82,7 +88,7 @@ def admin_home(request: Request):
 
     conn = sqlite3.connect("blog.db")
     cur = conn.cursor()
-    cur.execute("SELECT id, title, content FROM posts ORDER BY id DESC")
+    cur.execute("SELECT id, title, content, image FROM posts ORDER BY id DESC")
     posts = cur.fetchall()
     conn.close()
 
@@ -102,11 +108,19 @@ def new_post_form():
     return load_template("new.html")
 
 @app.post("/new")
-def save_post(title: str = Form(...), content: str = Form(...)):
+def save_post(title: str = Form(...), content: str = Form(...), image: UploadFile = File(None)):
+    image_path = None
+    if image:
+        upload_dir = "static/uploads"
+        os.makedirs(upload_dir, exist_ok=True)
+        file_path = os.path.join(upload_dir, image.filename)
+        with open(file_path, "wb") as buffer:
+            buffer.write(image.file.read())
+        image_path = f"/static/uploads/{image.filename}"
+
     conn = sqlite3.connect("blog.db")
     cur = conn.cursor()
-                                                #(?, ?) Att skydda mot SQL-injection (hackare kan inte smyga in egen SQL i dina formulärfält).
-    cur.execute("INSERT INTO posts (title, content) VALUES (?, ?)", (title, content))
+    cur.execute("INSERT INTO posts (title, content, image) VALUES (?, ?, ?)", (title, content, image_path))
     conn.commit()
     conn.close()
     return RedirectResponse("/admin", status_code=303)
@@ -121,30 +135,46 @@ def delete_post(post_id: int):
     return RedirectResponse("/admin", status_code=303)
 
 @app.get("/edit/{post_id}", response_class=HTMLResponse)
-def edit_post_form(post_id: int):
+def edit_post_form(request: Request, post_id: int):
     conn = sqlite3.connect("blog.db")
     cur = conn.cursor()
-    cur.execute("SELECT title, content FROM posts WHERE id = ?", (post_id,))
+    cur.execute("SELECT title, content, image FROM posts WHERE id = ?", (post_id,))
     post = cur.fetchone()
     conn.close()
 
     if not post:
         return RedirectResponse("/admin", status_code=303)
 
-    title, content = post
-    html = load_template("update.html")
-    html = html.replace("{post_id}", str(post_id))
-    html = html.replace("{title}", title)
-    html = html.replace("{content}", content)
+    title, content, image = post
+    return templates.TemplateResponse("update.html", {
+        "request": request,
+        "post_id": post_id,
+        "title": title,
+        "content": content,
+        "image": image
+    })
     
     return HTMLResponse(html)
 @app.post("/edit/{post_id}")
-def update_post(post_id: int, title: str = Form(...), content: str = Form(...)):
+def update_post(post_id: int, title: str = Form(...), content: str = Form(...), image: UploadFile = File(None)):
     conn = sqlite3.connect("blog.db")
     cur = conn.cursor()
-    cur.execute("UPDATE posts SET title = ?, content = ? WHERE id = ?", (title, content, post_id))
+    cur.execute("SELECT image FROM posts WHERE id = ?", (post_id,))
+    old_image = cur.fetchone()[0]
+    image_path = old_image
+
+    if image:
+        upload_dir = "static/uploads"
+        os.makedirs(upload_dir, exist_ok=True)
+        file_path = os.path.join(upload_dir, image.filename)
+        with open(file_path, "wb") as buffer:
+            buffer.write(image.file.read())
+        image_path = f"/static/uploads/{image.filename}"
+
+    cur.execute("UPDATE posts SET title = ?, content = ?, image = ? WHERE id = ?", (title, content, image_path, post_id))
     conn.commit()
     conn.close()
+
     return RedirectResponse("/admin", status_code=303)
 
 

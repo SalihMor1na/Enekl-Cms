@@ -7,9 +7,10 @@
 </head>
 <body>
   <h1>Skriv nytt inlägg</h1>
-  <form method="post" action="/new">
+  <form method="post" action="/new" enctype="multipart/form-data">
     <input type="text" name="title" placeholder="Titel"><br><br>
     <textarea name="content" placeholder="Innehåll"></textarea><br><br>
+    <input type="file" name="image" accept="image/*"><br><br>
     <button type="submit">Publicera</button>
   </form>
   <a href="/">⬅ Tillbaka</a>

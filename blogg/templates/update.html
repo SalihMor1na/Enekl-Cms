@@ -7,9 +7,17 @@
 </head>
 <body>
     <h1>Redigera inlägg</h1>
-    <form method="post" action="/edit/{post_id}">
-        <input type="text" name="title" value="{title}"><br><br>
-        <textarea name="content">{content}</textarea><br><br>
+    <form method="post" action="/edit/{{ post_id }}" enctype="multipart/form-data">
+        <input type="text" name="title" value="{{title}}"><br><br>
+        <textarea name="content">{{content}}</textarea><br><br>
+
+        {% if image %}
+            <img src="{{ image }}" alt="Nuvarande bild" class="post-image"><br>
+        {% endif %}
+
+        <label>Byt bild:</label><br>
+        <input type="file" name="image" accept="image/*"><br><br>
+        
         <button type="submit">Uppdatera</button>
     </form>
     <a href="/">⬅ Tillbaka</a>

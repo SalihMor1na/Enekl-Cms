@@ -6,7 +6,7 @@
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-  <h1>Blogginlägg</h1>
+  <h1>Adminpanel</h1>
   <div class="top-bar">
     {% if current_user %}
         <span class="user-info">Inloggad som: <b>{{ current_user }}</b></span>
@@ -16,17 +16,19 @@
     <a class="btn" href="/new">➕ Nytt inlägg</a>
 </div>
 
-<h1>Adminpanel</h1>
-
+<h1>Blogginlägg</h1>
 <div class="posts">
-    {% for pid, title, content in posts %}
-        <div class="post">
-            <h2>{{ title }}</h2>
-            <p>{{ content }}</p>
-            <a href="/edit/{{ pid }}">✏️ Redigera</a>
-            <a href="/delete/{{ pid }}">🗑️ Ta bort</a>
-        </div>
-    {% endfor %}
+  {% for pid, title, content, image in posts %}
+    <div class="post">
+        <h2>{{ title }}</h2>
+        {% if image %}
+            <img src="{{ image }}" alt="Bild för {{ title }}" class="post-image">
+        {% endif %}
+        <p>{{ content }}</p>
+        <a href="/edit/{{ pid }}">✏️ Redigera</a>
+        <a href="/delete/{{ pid }}">🗑️ Ta bort</a>
+    </div>
+  {% endfor %}
 </div>
  
 </body>
