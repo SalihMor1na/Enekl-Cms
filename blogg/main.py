@@ -186,11 +186,25 @@ def register_form():
 def register(username: str = Form(...), password: str = Form(...)):
     conn = sqlite3.connect("blog.db")
     cur = conn.cursor()
+
+    # 🔹 Kolla om användarnamnet redan finns
+    cur.execute("SELECT * FROM users WHERE username = ?", (username,))
+    existing_user = cur.fetchone()
+
+    if existing_user:
+        conn.close()
+        # 🔹 Visa ett tydligt felmeddelande
+        return HTMLResponse("""
+            <h2>❌ Användarnamnet finns redan!</h2>
+            <p>Välj ett annat användarnamn.</p>
+            <a href='/register'>⬅ Försök igen</a>
+        """)
+
+    # 🔹 Skapa nytt konto
     cur.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hash_password(password)))
     conn.commit()
     conn.close()
-    return RedirectResponse("/login", status_code=303)
-
+    return RedirectResponse("/", status_code=303)
 @app.get("/login", response_class=HTMLResponse)
 def login_form():
     return load_template("login.html")
