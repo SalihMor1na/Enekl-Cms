@@ -86,22 +86,15 @@ def admin_home(request: Request):
     posts = cur.fetchall()
     conn.close()
 
-    template = load_template("admin.html") 
     current_user = request.session.get("user")
 
-    template = remove_log_reg_btn(template, current_user)
     
-    posts_html = ""
-    for pid, title, content in posts:
-        posts_html += f"""
-        <div class='post'>
-            <h2>{title}</h2>
-            <p>{content}</p>
-            <a href="/edit/{pid}">✏️ Redigera</a>
-            <a href="/delete/{pid}">🗑️ Ta bort</a>
-        </div>"""
+    return templates.TemplateResponse("admin.html", {
+        "request": request,
+        "posts": posts,
+        "current_user": current_user
+    })
 
-    return template.replace("{{posts}}", posts_html)
 
 
 @app.get("/new", response_class=HTMLResponse)

@@ -8,9 +8,26 @@
 <body>
   <h1>Blogginlägg</h1>
   <div class="top-bar">
-    {{auth_buttons}}
-  </div>
-  {{posts}}
-  <a href="/new">➕ Nytt inlägg</a>
+    {% if current_user %}
+        <span class="user-info">Inloggad som: <b>{{ current_user }}</b></span>
+        <a class="btn" href="/logout">Logout</a>
+    {% endif %}
+    <a class="btn" href="/">Till startsidan</a>
+    <a class="btn" href="/new">➕ Nytt inlägg</a>
+</div>
+
+<h1>Adminpanel</h1>
+
+<div class="posts">
+    {% for pid, title, content in posts %}
+        <div class="post">
+            <h2>{{ title }}</h2>
+            <p>{{ content }}</p>
+            <a href="/edit/{{ pid }}">✏️ Redigera</a>
+            <a href="/delete/{{ pid }}">🗑️ Ta bort</a>
+        </div>
+    {% endfor %}
+</div>
+ 
 </body>
 </html>
